@@ -6,16 +6,21 @@
  circuit:
  * 8-ohm speaker on digital pin 8
 
- created 21 Jan 2010
- modified 30 Aug 2011
- by Tom Igoe
-
-This example code is in the public domain.
-
  http://arduino.cc/en/Tutorial/Tone
 
  */
 #include "pitches.h"
+
+struct note {
+  int pitch;
+  float duration;
+}; 
+
+struct note melody1[] = {
+  {NOTE_D4, 0.5},
+  {NOTE_D4, 0.25},
+  {NOTE_D4, 0.5}
+};
 
 // notes in the melody:
 int melody[] = {
@@ -31,14 +36,17 @@ float noteDurations[] = {
 };
 
 void setup() {
+  Serial.begin(9600);
   // iterate over the notes of the melody:
-  for (int thisNote = 0; thisNote < sizeof(melody)/sizeof(melody[0]); thisNote++) {
+  for (int thisNote = 0; thisNote < sizeof(melody1)/sizeof(melody1[0]); thisNote++) {
 
     // to calculate the note duration, take one second
     // divided by the note type.
     //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-    int noteDuration = 1000 / noteDurations[thisNote];
-    tone(2, melody[thisNote], noteDuration);
+    int noteDuration = 1000 * melody1[thisNote].duration;
+    tone(2, melody1[thisNote].pitch, noteDuration);
+    Serial.println(melody1[thisNote].pitch);
+    Serial.println(melody1[thisNote].duration);
 
     // to distinguish the notes, set a minimum time between them.
     // the note's duration + 30% seems to work well:
