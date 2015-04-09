@@ -1,33 +1,44 @@
-/*
-  Melody
-
- Plays a melody
-
- circuit:
- * 8-ohm speaker on digital pin 8
-
- http://arduino.cc/en/Tutorial/Tone
-
- */
 #include "pitches.h"
 #include "melody.h"
 
+const int sensorMin = 0;     // sensor minimum
+const int sensorMax = 1024;  // sensor maximum
+
 void setup() {
   Serial.begin(9600);
-  buzzerSound();
 }
 
 void loop() {
-  // no need to repeat the melody.
+  // read the sensor on analog A0:
+  int sensorReading = analogRead(A0);
+  // map the sensor range (four options):
+  // ex: 'long int map(long int, long int, long int, long int, long int)'
+  int range = map(sensorReading, sensorMin, sensorMax, 0, 3);
+
+  // range value:
+  switch (range) {
+    case 0:    // Sensor getting wet
+      Serial.println("Flood");
+      buzzerSound();
+      break;
+    case 1:    // Sensor getting wet
+      Serial.println("Rain Warning");
+      buzzerSound();
+      break;
+    case 2:    // Sensor dry - To shut this up delete the " Serial.println("Not Raining"); " below.
+      Serial.println("Not Raining");
+      break;
+  }
+  delay(1);  // delay between reads
 }
 
 void buzzerSound() {
   Serial.println(sizeof(melody));
   Serial.println(sizeof(melody[0]));
-  for (int thisNote = 0; thisNote < sizeof(melody)/sizeof(melody[0]); thisNote++) {
+  for (int thisNote = 0; thisNote < sizeof(melody) / sizeof(melody[0]); thisNote++) {
     int noteDuration = 1000 * melody[thisNote].duration;
     Serial.println(melody[thisNote].duration);
-    Serial.println(melody[thisNote].duration);    
+    Serial.println(melody[thisNote].duration);
     tone(2, melody[thisNote].pitch, noteDuration);
 
     // to distinguish the notes, set a minimum time between them.
@@ -36,5 +47,5 @@ void buzzerSound() {
     delay(pauseBetweenNotes);
     // stop the tone playing:
     // noTone(2);
-  }  
+  }
 }
