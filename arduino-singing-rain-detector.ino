@@ -15,34 +15,41 @@ void setup() {
 }
 
 void loop() {
-
-  if (Serial.available()) {
-    if (Serial.read() == SILENCE_COMMAND) {
+  
+  // Listen on bluetooth serial port for command to stop the music
+  if (gotSilenceCommand()) {
       deviceMode = SOUND_OFF;
-    }
   }
 
   int sensorReading = 1023;//analogRead(SENSOR_PIN);
 
   bool isRaining = sensorReading < RAIN_THRESHOLD;
 
+  // Send message via bluetooth serial port with current sensor reading
   sendMessage(isRaining, sensorReading);
 
   if (isRaining) {
     if (deviceMode != SOUND_OFF) {
-      //Serial.println("I'm singing in the rain");
-      //buzzerSound();
+      mockBuzzerSound();
     }
   }
   else {
+    // turn device sound mode on when current rain event is ended (sensor getting dry)
     deviceMode = SOUND_ON;
   }
 
-  delay(1000 * 20); // delay between reads = 1 minute
+  delay(1000 * 20); // delay between reads
 }
 
+/*
+Play melody on the buzzer
+*/
 void buzzerSound() {
   for (int thisNote = 0; thisNote < sizeof(melody) / sizeof(melody[0]); thisNote++) {
+    if (gotSilenceCommand()) {
+      deviceMode = SOUND_OFF;
+      break;
+    }
     int noteDuration = 1000 * melody[thisNote].duration;
     tone(BUZZER_PIN, melody[thisNote].pitch, noteDuration);
 
@@ -52,6 +59,25 @@ void buzzerSound() {
     delay(pauseBetweenNotes);
   }
 }
+
+void mockBuzzerSound() {
+  for (int thisNote = 0; thisNote < sizeof(melody) / sizeof(melody[0]); thisNote++) {
+    int noteDuration = 1000 * melody[thisNote].duration;
+    Serial.print("la");
+    int pauseBetweenNotes = noteDuration * 1.30;
+    delay(pauseBetweenNotes);
+  }  
+}
+
+boolean gotSilenceCommand() {
+  if (Serial.available()) {
+    if (Serial.read() == SILENCE_COMMAND) {
+      return true;
+    }
+  }
+  return false;  
+}
+
 
 /*
 Message format:
